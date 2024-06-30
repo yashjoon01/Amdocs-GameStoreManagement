@@ -371,6 +371,68 @@ public class Manager {
             }
         }
     }
+
+    private boolean isValidRequestId(int reqId) {
+        boolean isValid = false;
+        try {
+            Statement smt = con.createStatement();
+            String query = "SELECT COUNT(*) FROM requests WHERE request_id = " + reqId;
+
+            ResultSet rs = smt.executeQuery(query);
+
+            if (rs.next() && rs.getInt(1) > 0) {
+                isValid = true;
+            }
+            rs.close();
+            smt.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return isValid;
+    }
+    public void processRequest() throws SQLException{
+        viewRequest();
+        int id;
+
+        while(true){
+            System.out.print("Choose the request ID you want to process - ");
+            String ip = scanner.nextLine();
+            try{
+                id = Integer.parseInt(ip);
+                if(isValidRequestId(id))    break;
+            }catch (NumberFormatException e){
+                System.out.println("Wrong input !\n");
+            }
+        }
+
+        int choice;
+
+        while(true){
+            try{
+                System.out.print("Approve(1) or deny(2) the request : ");
+                String ip = scanner.nextLine();
+                choice = Integer.parseInt(ip);
+                if(choice == 1 || choice == 2)
+                    break;
+            }catch (NumberFormatException e){
+                System.out.println("Wrong input !\n");
+            }
+        }
+
+        String query = "";
+        if(choice == 1){
+            query = "Update requests set status = 'approved' where request_id = " + id;
+            System.out.println("Request Approved !\n");
+        }
+        else{
+            query = "Update requests set status = 'denied' where request_id = " + id;
+            System.out.println("Request Denied !\n");
+        }
+
+        Statement smt = con.createStatement();
+        smt.executeQuery(query);
+    }
     public void displayManagerView() throws SQLException {
         boolean logout = false;
         while (!logout) {
@@ -385,7 +447,8 @@ public class Manager {
             System.out.println("8. View Sales Report");
             System.out.println("9. View Pre - Bookings");
             System.out.println("10. View Requests by Customers");
-            System.out.println("11. Logout\n");
+            System.out.println("11. Process Customer Request");
+            System.out.println("12. Logout\n");
             System.out.print("Enter your choice: ");
 
 
@@ -455,6 +518,10 @@ public class Manager {
                     viewRequest();
                     break;
                 case 11:
+                    System.out.println("Request Processing Window...");
+                    processRequest();
+                    break;
+                case 12:
                     System.out.println("\nLogged Out !\n");
                     logout = true;
                     break;
